@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Clubhouse Signup</title>
+  </head>
+  <body class="w-full h-screen bg-zinc-200 flex items-center justify-center">
+    <div class="w-full max-w-lg px-4">
+      <h1 class="text-4xl md:text-5xl text-blue-600 text-center font-bold tracking-wide mb-6">
+        Clubhouse
+      </h1>
+      <form
+        class="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-lg shadow-gray-500"
+        action="/api/users/signup"
+        method="POST"
+      >
+        <p class="text-center font-semibold mb-4">
+          Create a new account for Clubhouse
+        </p>
+        <input
+          class="w-full text-lg p-3 border border-gray-400 rounded-md outline-none"
+          type="text"
+          placeholder="Full Name"
+          name="fullName"
+          required
+        />
+        <input
+          class="w-full text-lg p-3 border border-gray-400 rounded-md outline-none"
+          type="email"
+          placeholder="Email address"
+          name="email"
+          required
+        />
+        <input
+          class="w-full text-lg p-3 border border-gray-400 rounded-md outline-none"
+          type="password"
+          name="password"
+          placeholder="Password"
+          required
+        />
+        <button
+          class="w-full bg-green-600 text-white rounded-md text-lg py-3 font-semibold hover:bg-green-700 transition"
+        >
+          Signup
+        </button>
+        <p class="text-center mt-4">
+          <a href="/" class="text-blue-600 font-semibold hover:underline"
+            >Already have an account? Login</a
+          >
+        </p>
+      </form>
+    </div>
+
+    <!-- Toast notification -->
+    <div
+      id="toast"
+      class="hidden fixed top-10 right-5 bg-green-500 text-white px-4 py-3 rounded-md shadow-md"
+    >
+      <span id="toast-message"></span>
+    </div>
+
+    <!-- Inject script dynamically without rendering it as plain text -->
+    <% if (typeof message !== 'undefined' && messageType) { %>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        showToast('<%= message %>', '<%= messageType %>');
+      });
+    </script>
+    <% } %>
+
+    <script>
+      // Function to show toast notification
+      function showToast(message, type = "success", duration = 3000) {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toast-message");
+
+        toastMessage.textContent = message;
+
+        if (type === "success") {
+          toast.classList.add("bg-green-500");
+          toast.classList.remove("bg-red-500");
+        } else {
+          toast.classList.add("bg-red-500");
+          toast.classList.remove("bg-green-500");
+        }
+
+        toast.classList.remove("hidden");
+
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, duration);
+      }
+    </script>
+  </body>
+</html>

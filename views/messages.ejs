@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Clubhouse</title>
+  </head>
+  <body>
+    <!-- Header Section -->
+    <header
+      class="flex flex-col md:flex-row justify-center items-center pt-[2vh] pb-[2vh] bg-zinc-200 border-b border-black fixed w-[100vw] md:gap-[10vw] gap-[3vh]"
+    >
+      <!-- Title -->
+      <div>
+        <span
+          class="text-5xl md:text-5xl text-blue-600 text-center font-bold tracking-wide"
+        >
+          Clubhouse
+        </span>
+      </div>
+      <!-- Buttons Section -->
+      <div class="flex gap-[2vw]">
+        <button
+          id="becomeMemberBtn"
+          class="bg-slate-500 px-[5vw] md:px-[1vw] md:py-[1vh] rounded-md font-semibold text-sm md:text-base"
+        >
+          Become a member
+        </button>
+        <button
+          class="bg-slate-500 px-[5vw] md:px-[1vw] py-[2vh] md:py-[1vh] rounded-md font-semibold text-sm md:text-base"
+          onclick="window.location.href = '/logout'"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Section -->
+    <div
+      class="pt-[18vh] bg-zinc-300 min-h-[100vh] w-[100vw] pb-[5vh] md:pt-[10vh] lg:pt-[15vh]"
+    >
+      <!-- Loop through each message -->
+      <% messages.map((message) => { %>
+      <div
+        class="border border-gray-300 rounded-lg p-6 mb-4 bg-white shadow-md w-[90vw] md:w-[70vw] mx-auto"
+      >
+        <h2 class="text-xl md:text-2xl font-bold text-blue-600 mb-2">
+          <%= message.title %>
+        </h2>
+        <p class="text-gray-700 mb-4 font-semibold text-base md:text-lg">
+          <%= message.text %>
+        </p>
+      </div>
+      <% }) %>
+    </div>
+
+    <!-- Hidden form for becoming a member -->
+    <div
+      id="memberFormDiv"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg w-[90vw] md:w-[40vw]">
+        <h2 class="text-lg md:text-xl font-bold mb-4">
+          Answer this riddle to become a member
+        </h2>
+        <form id="becomeMemberForm" class="flex flex-col gap-[2vh]">
+          <label class="text-base md:text-lg"
+            >What has teeth but cannot bite?</label
+          >
+          <input
+            class="w-full p-[1vh] border border-gray-400 rounded-md outline-none"
+            type="text"
+            placeholder="Your answer"
+            name="riddleAnswer"
+            required
+          />
+          <div class="flex justify-end gap-[1vw] mt-[2vh]">
+            <button
+              type="button"
+              id="cancelBtn"
+              class="bg-red-500 text-white px-[5vw] md:px-[2vw] py-[2vh] md:py-[1vh] rounded-md font-semibold text-sm md:text-base"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-blue-600 text-white px-[5vw] md:px-[2vw] py-[2vh] md:py-[1vh] rounded-md font-semibold text-sm md:text-base"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- JavaScript for form handling -->
+    <script>
+      // Get the button and the form div elements
+      const becomeMemberBtn = document.getElementById("becomeMemberBtn");
+      const memberFormDiv = document.getElementById("memberFormDiv");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const becomeMemberForm = document.getElementById("becomeMemberForm");
+      const riddleAnswerInput = document.querySelector(
+        'input[name="riddleAnswer"]'
+      );
+
+      // Show the form when "Become a member" is clicked
+      becomeMemberBtn.addEventListener("click", function () {
+        memberFormDiv.classList.remove("hidden");
+      });
+
+      // Hide the form when the cancel button is clicked
+      cancelBtn.addEventListener("click", function () {
+        memberFormDiv.classList.add("hidden");
+      });
+
+      // Handle form submission and check the riddle answer
+      becomeMemberForm.addEventListener("submit", function (e) {
+        e.preventDefault(); // Prevent actual form submission
+
+        const answer = riddleAnswerInput.value.trim().toLowerCase();
+
+        fetch("/api/member", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ answer }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.message === "You are now a member") {
+              window.location.href = "/api/member/view";
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Something went wrong, please try again.");
+          });
+
+        memberFormDiv.classList.add("hidden");
+      });
+    </script>
+  </body>
+</html>

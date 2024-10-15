@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <header
+      class="flex flex-col md:flex-row justify-center items-center pt-[2vh] pb-[2vh] bg-zinc-200 border-b border-black fixed w-[100vw] md:gap-[10vw] gap-[3vh]"
+    >
+      <div>
+        <span
+          class="text-5xl md:text-5xl text-blue-600 text-center font-bold tracking-wide"
+        >
+          Clubhouse
+        </span>
+      </div>
+
+      <div class="flex gap-[4vw]">
+        <button
+          id="addMessage"
+          class="bg-slate-500 px-[1vw] py-[1vh] rounded-md font-semibold"
+        >
+          Add a message
+        </button>
+
+        <button
+          id="becomeAdminBtn"
+          class="bg-slate-500 px-[1vw] py-[1vh] rounded-md font-semibold"
+        >
+          Become admin
+        </button>
+
+        <button
+          class="bg-slate-500 px-[1vw] py-[1vh] rounded-md font-semibold"
+          onclick="window.location.href = '/logout'"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Add Message Form -->
+    <div
+      id="addMessageDiv"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg w-[90vw] sm:w-[80vw] md:w-[60vw] lg:w-[40vw]"
+      >
+        <form id="addMessageForm" class="flex flex-col gap-[2vh]">
+          <p>Add your message</p>
+          <input
+            class="w-full p-[1vh] border border-gray-400 rounded-md outline-none"
+            type="text"
+            placeholder="Enter your title"
+            name="title"
+            required
+          />
+          <textarea
+            class="w-full p-[1vh] border border-gray-400 rounded-md outline-none"
+            placeholder="Enter your text"
+            name="text"
+            required
+          ></textarea>
+          <div class="flex justify-between gap-[2vw]">
+            <button
+              type="button"
+              id="cancelMessageBtn"
+              class="bg-red-500 text-white px-[2vw] py-[1vh] rounded-md font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-blue-600 text-white px-[2vw] py-[1vh] rounded-md font-semibold"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Become Admin Form -->
+    <div
+      id="adminFormDiv"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg w-[90vw] sm:w-[80vw] md:w-[60vw] lg:w-[40vw]"
+      >
+        <h2 class="text-xl font-bold mb-4">
+          Answer this riddle to become admin
+        </h2>
+        <form id="becomeAdminForm" class="flex flex-col gap-[2vh]">
+          <label class="text-lg">
+            What walks on four legs in the morning, two legs at noon, and three
+            legs in the evening?
+          </label>
+          <input
+            class="w-full p-[1vh] border border-gray-400 rounded-md outline-none"
+            type="text"
+            placeholder="Your answer"
+            name="riddleAnswer"
+            required
+          />
+          <div class="flex justify-end gap-[1vw] mt-[2vh]">
+            <button
+              type="button"
+              id="cancelAdminBtn"
+              class="bg-red-500 text-white px-[2vw] py-[1vh] rounded-md font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-blue-600 text-white px-[2vw] py-[1vh] rounded-md font-semibold"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      class="pt-[18vh] bg-zinc-300 min-h-[100vh] w-[100vw] pb-[5vh] md:pt-[10vh] lg:pt-[15vh]"
+    >
+  
+      <!-- Loop through each message -->
+      <% messages.map((message) => { %>
+      <div
+        class="border border-gray-300 rounded-lg p-6 mb-4 bg-white shadow-md w-[90vw] sm:w-[80vw] md:w-[70vw] ml-auto mr-auto"
+      >
+        <h2 class="text-2xl font-bold text-blue-600 mb-2">
+          <%= message.title %>
+        </h2>
+        <p class="text-gray-700 mb-4 font-semibold"><%= message.text %></p>
+        <div class="text-gray-500 text-sm flex justify-between">
+          <div>
+            <p class="text-red-600">
+              Posted by <%= message.user.fullName %> on <%= new
+              Date(message.createdAt).toLocaleString() %>
+            </p>
+          </div>
+          <div></div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <script>
+      const addMessageBtn = document.getElementById("addMessage");
+      const addMessageDiv = document.getElementById("addMessageDiv");
+      const cancelMessageBtn = document.getElementById("cancelMessageBtn");
+      const addMessageForm = document.getElementById("addMessageForm");
+
+      addMessageBtn.addEventListener("click", function () {
+        addMessageDiv.classList.remove("hidden");
+      });
+
+      cancelMessageBtn.addEventListener("click", function () {
+        addMessageDiv.classList.add("hidden");
+      });
+
+      addMessageForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const title = addMessageForm.title.value;
+        const text = addMessageForm.text.value;
+
+        try {
+          const response = await fetch("/api/member/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ title, text }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("Message created successfully");
+            addMessageDiv.classList.add("hidden");
+            addMessageForm.reset();
+          } else {
+            alert(data.message || "Failed to create message");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Something went wrong. Please try again.");
+        }
+      });
+
+      // Become Admin Modal Logic
+      const becomeAdminBtn = document.getElementById("becomeAdminBtn");
+      const adminFormDiv = document.getElementById("adminFormDiv");
+      const cancelAdminBtn = document.getElementById("cancelAdminBtn");
+      const becomeAdminForm = document.getElementById("becomeAdminForm");
+      const riddleAnswerInput = document.querySelector(
+        'input[name="riddleAnswer"]'
+      );
+
+      becomeAdminBtn.addEventListener("click", function () {
+        adminFormDiv.classList.remove("hidden");
+      });
+
+      cancelAdminBtn.addEventListener("click", function () {
+        adminFormDiv.classList.add("hidden");
+      });
+
+      becomeAdminForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const answer = riddleAnswerInput.value.trim().toLowerCase();
+
+        fetch("/api/admin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ answer }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.message === "You are now an admin") {
+              window.location.href = "/api/admin/view";
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Something went wrong, please try again.");
+          });
+
+        adminFormDiv.classList.add("hidden");
+      });
+    </script>
+  </body>
+</html>

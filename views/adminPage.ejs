@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Clubhouse Admin - Messages</title>
+  </head>
+  <body>
+    <header
+      class="flex flex-col md:flex-row justify-center items-center pt-[2vh] pb-[2vh] bg-zinc-200 border-b border-black fixed w-[100vw] md:gap-[10vw] gap-[3vh]"
+    >
+      <div>
+        <span
+          class="text-5xl md:text-5xl text-blue-600 text-center font-bold tracking-wide"
+          >Clubhouse</span
+        >
+      </div>
+      <div class="flex gap-[4vw]">
+        <button
+          id="addMessage"
+          class="bg-slate-500 px-[1vw] py-[1vh] rounded-md font-semibold"
+        >
+          Add a message
+        </button>
+        <button
+          id="seeAllUsersBtn"
+          class="bg-slate-500 px-[1vw] py-[1vh] rounded-md font-semibold"
+        >
+          See all users
+        </button>
+
+        <button
+          class="bg-slate-500 px-[1vw] py-[1vh] rounded-md font-semibold"
+          onclick="window.location.href = '/logout'"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Add Message Form -->
+    <div
+      id="addMessageDiv"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg w-[90vw] sm:w-[80vw] md:w-[60vw] lg:w-[40vw]"
+      >
+        <form id="addMessageForm" class="flex flex-col gap-[2vh]">
+          <p>Add your message</p>
+          <input
+            class="w-full p-[1vh] border border-gray-400 rounded-md outline-none"
+            type="text"
+            placeholder="Enter your title"
+            name="title"
+            required
+          />
+          <textarea
+            class="w-full p-[1vh] border border-gray-400 rounded-md outline-none"
+            placeholder="Enter your text"
+            name="text"
+            required
+          ></textarea>
+          <div class="flex justify-between gap-[2vw]">
+            <button
+              type="button"
+              id="cancelMessageBtn"
+              class="bg-red-500 text-white px-[2vw] py-[1vh] rounded-md font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-blue-600 text-white px-[2vw] py-[1vh] rounded-md font-semibold"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- See All Users Modal -->
+    <div
+      id="allUsersDiv"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg w-[90vw] sm:w-[80vw] md:w-[60vw] lg:w-[40vw] max-h-[80vh] overflow-y-auto"
+      >
+        <h2 class="text-xl md:text-2xl font-bold mb-4">All Users</h2>
+        <div id="userList" class="flex flex-col gap-[1vh] mb-4"></div>
+        <div class="flex justify-end">
+          <button
+            id="cancelUsersBtn"
+            class="bg-red-500 text-white px-[6vw] py-[2vh] md:px-[3vw] md:py-[1.5vh] lg:px-[2vw] lg:py-[1vh] rounded-md font-semibold"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="pt-[18vh] bg-zinc-300 min-h-[100vh] w-[100vw] pb-[5vh] md:pt-[10vh] lg:pt-[15vh]"
+    >
+      <!-- Loop through each message -->
+      <% messages.map((message, index) => { %>
+      <div
+        class="border border-gray-300 rounded-lg p-6 mb-4 bg-white shadow-md w-[90vw] sm:w-[80vw] md:w-[70vw] ml-auto mr-auto"
+      >
+        <h2 class="text-2xl font-bold text-blue-600 mb-2">
+          <%= message.title %>
+        </h2>
+        <p class="text-gray-700 mb-4 font-semibold"><%= message.text %></p>
+        <div class="text-gray-500 text-sm flex justify-between">
+          <div>
+            <p class="text-red-600">
+              Posted by <%= message.user.fullName %> on <%= new
+              Date(message.createdAt).toLocaleString() %>
+            </p>
+          </div>
+          <div>
+            <% if (index >= 2) { %>
+            <button
+              class="bg-red-600 text-white px-[1vw] py-[1vh] rounded-md delete-message-btn"
+              data-id="<%= message._id %>"
+            >
+              Delete
+            </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <script>
+      const addMessageBtn = document.getElementById("addMessage");
+      const cancelMessageBtn = document.getElementById("cancelMessageBtn");
+      const addMessageDiv = document.getElementById("addMessageDiv");
+      const addMessageForm = document.getElementById("addMessageForm");
+
+      const seeAllUsersBtn = document.getElementById("seeAllUsersBtn");
+      const allUsersDiv = document.getElementById("allUsersDiv");
+      const cancelUsersBtn = document.getElementById("cancelUsersBtn");
+      const userList = document.getElementById("userList");
+
+      // Show message form when "Add a message" is clicked
+      addMessageBtn.addEventListener("click", function () {
+        addMessageDiv.classList.remove("hidden");
+      });
+
+      // Hide message form when "Cancel" is clicked
+      cancelMessageBtn.addEventListener("click", function () {
+        addMessageDiv.classList.add("hidden");
+      });
+
+      // Handle form submission for adding messages
+      addMessageForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const title = addMessageForm.title.value;
+        const text = addMessageForm.text.value;
+
+        try {
+          const response = await fetch("/api/member/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ title, text }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("Message created successfully");
+            addMessageDiv.classList.add("hidden");
+            addMessageForm.reset();
+            location.reload();
+          } else {
+            alert(data.message || "Failed to create message");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Something went wrong. Please try again.");
+        }
+      });
+
+      // Show all users when "See all users" is clicked
+      seeAllUsersBtn.addEventListener("click", async function () {
+        try {
+          const response = await fetch("/api/admin/all-users", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            userList.innerHTML = "";
+            data.forEach((user) => {
+              const userDiv = document.createElement("div");
+              userDiv.className =
+                "border border-gray-300 rounded-lg p-4 bg-gray-100";
+              userDiv.innerHTML = `
+                <h3 class="text-lg font-bold">${user.fullName}</h3>
+                <p class="text-sm text-gray-600">Email: ${user.email}</p>
+                <p class="text-sm text-gray-600">Authorization: ${
+                  user.isAdmin ? "Admin" : "Member"
+                }</p>`;
+              userList.appendChild(userDiv);
+            });
+            allUsersDiv.classList.remove("hidden");
+          } else {
+            alert(data.message || "Failed to fetch users");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Something went wrong. Please try again.");
+        }
+      });
+
+      // Hide the "See All Users" modal when "Cancel" is clicked
+      cancelUsersBtn.addEventListener("click", function () {
+        allUsersDiv.classList.add("hidden");
+      });
+
+      // Function to add delete button listeners dynamically
+      function addDeleteListeners() {
+        const deleteButtons = document.querySelectorAll(".delete-message-btn");
+
+        deleteButtons.forEach((button) => {
+          button.addEventListener("click", async function () {
+            const messageId = this.getAttribute("data-id");
+
+            const confirmDelete = confirm(
+              "Are you sure you want to delete this message?"
+            );
+
+            if (confirmDelete) {
+              try {
+                const response = await fetch(
+                  `/api/admin/delete-message/${messageId}`,
+                  {
+                    method: "DELETE",
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  }
+                );
+
+                const data = await response.json();
+
+                if (response.ok) {
+                  alert(data.message || "Message deleted successfully");
+
+                  this.closest("div").remove();
+                } else {
+                  alert(data.message || "Failed to delete message");
+                }
+              } catch (error) {
+                console.error("Error:", error);
+                alert("Something went wrong. Please try again.");
+              }
+            }
+          });
+        });
+      }
+
+      window.addEventListener("load", function () {
+        addDeleteListeners();
+      });
+    </script>
+  </body>
+</html>
