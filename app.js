@@ -7,6 +7,8 @@ import messageRoutes from './routes/messageRoutes.js';
 import memberRoute from './routes/memberRoute.js';
 import adminRoute from './routes/adminRoute.js';
 import { logout } from './controllers/userController.js';
+import path from 'path';
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +17,7 @@ dotenv.config();
 
 
 app.set('view engine', 'ejs');
+app.set('views', path.join(process.cwd(), 'views'));
 
 
 // Middlewares
