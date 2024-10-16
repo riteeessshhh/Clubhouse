@@ -15,7 +15,7 @@ dotenv.config();
 
 
 app.set('view engine', 'ejs');
-app.set('views', __dirname + '/views');
+
 
 // Middlewares
 app.use(cookieParser());
